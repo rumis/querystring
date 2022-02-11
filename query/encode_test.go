@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
-	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -24,31 +22,67 @@ func TestMapEncode(t *testing.T) {
 				"s3": 3,
 				"s5": "ssss",
 			},
-			"time": time.Now(),
+			"time": time.Date(2022, 02, 11, 16, 39, 02, 0, time.UTC),
 		},
 	}
+	testValue(t, m1, url.Values{
+		"age[a1]":      {"1"},
+		"age[a2]":      {"2"},
+		"age[sex][s3]": {"3"},
+		"age[sex][s5]": {"ssss"},
+		"age[time]":    {"2022-02-11 16:39:02"},
+		"name":         {"murong"},
+	})
+}
 
-	v, err := Values(m1)
-	if err != nil {
-		t.Fatal(err)
+func BenchmarkMap(b *testing.B) {
+
+	m1 := map[string]interface{}{
+		"name": "murong",
+		"age": map[string]interface{}{
+			"a1": 1,
+			"a2": "2",
+			"sex": map[string]interface{}{
+				"s3": 3,
+				"s5": "ssss",
+			},
+			"time": time.Date(2022, 02, 11, 16, 39, 02, 0, time.UTC),
+		},
 	}
+	for i := 0; i < b.N; i++ {
+		Values(m1)
+	}
+}
 
-	str := v.Encode()
-
-	str = strings.ReplaceAll(str, "%5B", "[")
-	str = strings.ReplaceAll(str, "%5D", "]")
-
-	// t.Error(str)
-
+func BenchmarkStruct(b *testing.B) {
+	s1 := struct {
+		Level
+		ID       int `qs:"-"`
+		Name     string
+		Age      int       `qs:"age,omitempty"`
+		Sex      string    `qs:"sex"`
+		Subject  []string  `qs:"subject"`
+		Birthday time.Time `qs:"birthday"`
+	}{
+		Level: Level{
+			Level: 99,
+		},
+		ID:   2,
+		Name: "zhangsan",
+		Age:  1,
+		Sex:  "man",
+		Subject: []string{
+			"math", "english", "chinese",
+		},
+		Birthday: time.Date(2022, 02, 11, 16, 39, 02, 0, time.UTC),
+	}
+	for i := 0; i < b.N; i++ {
+		Values(s1)
+	}
 }
 
 type Level struct {
 	Level int `qs:"level"`
-}
-
-func (l Level) EncodeValues(scope string, v *url.Values) error {
-	v.Add("lt", "t-"+strconv.Itoa(l.Level))
-	return nil
 }
 
 func TestStructEncode(t *testing.T) {
@@ -72,20 +106,21 @@ func TestStructEncode(t *testing.T) {
 		Subject: []string{
 			"math", "english", "chinese",
 		},
-		Birthday: time.Now(),
+		Birthday: time.Date(2022, 02, 11, 16, 39, 02, 0, time.UTC),
 	}
 
-	v, err := Values(s1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	SetTimeFormat("2006-01-02")
 
-	str := v.Encode()
+	testValue(t, s1, url.Values{
+		"Name":      {"zhangsan"},
+		"age":       {"1"},
+		"birthday":  {"2022-02-11"},
+		"level":     {"99"},
+		"sex":       {"man"},
+		"subject[]": {"math", "english", "chinese"},
+	})
 
-	str = strings.ReplaceAll(str, "%5B", "[")
-	str = strings.ReplaceAll(str, "%5D", "]")
-
-	// t.Error(str)
+	SetTimeFormat("2006-01-02 15:04:05")
 
 }
 
