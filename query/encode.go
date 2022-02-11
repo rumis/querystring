@@ -14,7 +14,7 @@ var timeType = reflect.TypeOf(time.Time{})
 var timeLayout = "2006-01-02 15:04:05"
 var encoderType = reflect.TypeOf(new(Encoder)).Elem()
 
-// 设置时间参数的输出格式
+// SetTimeFormat 设置时间参数的输出格式
 func SetTimeFormat(layout string) {
 	timeLayout = layout
 }
@@ -34,6 +34,7 @@ type Encoder interface {
 	EncodeValues(scope string, v *url.Values) error
 }
 
+// Values 对v进行编码，返回url.Values
 func Values(v interface{}) (url.Values, error) {
 	values := make(url.Values)
 
