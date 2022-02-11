@@ -74,7 +74,7 @@ func valueEncode(scope ScopeOptions, values url.Values, val reflect.Value) error
 	}
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {
-			values.Add(scope.Scope, "")
+			return nil
 		}
 		val = val.Elem()
 	}
@@ -97,22 +97,24 @@ func valueEncode(scope ScopeOptions, values url.Values, val reflect.Value) error
 		}
 		return nil
 	}
-
+	var err error
 	switch val.Kind() {
+	case reflect.Ptr:
+		err = valueEncode(scope, values, reflect.ValueOf(val.Interface()))
 	case reflect.Struct:
-		structEncode(scope, values, val)
+		err = structEncode(scope, values, val)
 	case reflect.Slice, reflect.Array:
-		sliceEncode(scope, values, val)
+		err = sliceEncode(scope, values, val)
 	case reflect.Map:
-		mapEncode(scope, values, val)
+		err = mapEncode(scope, values, val)
 	case reflect.Interface:
-		err := valueEncode(scope, values, reflect.ValueOf(val.Interface()))
-		if err != nil {
-			return err
-		}
+		err = valueEncode(scope, values, reflect.ValueOf(val.Interface()))
 	default:
 		// 值全部使用fmt输出
 		values.Add(scope.Scope, fmt.Sprint(val.Interface()))
+	}
+	if err != nil {
+		return err
 	}
 	return nil
 }
