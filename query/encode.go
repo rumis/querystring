@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const maxLevel = 5
+const maxLevel = 7
 
 var timeType = reflect.TypeOf(time.Time{})
 var timeLayout = "2006-01-02 15:04:05"
