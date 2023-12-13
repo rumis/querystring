@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -206,7 +207,7 @@ func sliceEncode(scope ScopeOptions, values url.Values, val reflect.Value) error
 	}
 	for i := 0; i < val.Len(); i++ {
 		err := valueEncode(ScopeOptions{
-			Scope: scope.Scope + "[]",
+			Scope: scope.Scope + "[" + strconv.Itoa(i) + "]",
 			Level: scope.Level + 1,
 		}, values, val.Index(i))
 		if err != nil {

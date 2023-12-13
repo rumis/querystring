@@ -112,12 +112,14 @@ func TestStructEncode(t *testing.T) {
 	SetTimeFormat("2006-01-02")
 
 	testValue(t, s1, url.Values{
-		"Name":      {"zhangsan"},
-		"age":       {"1"},
-		"birthday":  {"2022-02-11"},
-		"level":     {"99"},
-		"sex":       {"man"},
-		"subject[]": {"math", "english", "chinese"},
+		"Name":       {"zhangsan"},
+		"age":        {"1"},
+		"birthday":   {"2022-02-11"},
+		"level":      {"99"},
+		"sex":        {"man"},
+		"subject[0]": {"math"},
+		"subject[1]": {"english"},
+		"subject[2]": {"chinese"},
 	})
 
 	SetTimeFormat("2006-01-02 15:04:05")
@@ -200,11 +202,11 @@ func TestValues_Pointers(t *testing.T) {
 
 		// slices of pointer values
 		{struct{ V []*string }{}, url.Values{}},
-		{struct{ V []*string }{[]*string{&str, &str}}, url.Values{"V[]": {"s", "s"}}},
+		{struct{ V []*string }{[]*string{&str, &str}}, url.Values{"V[0]": {"s"}, "V[1]": {"s"}}},
 
 		// pointer to slice
 		{struct{ V *[]string }{}, url.Values{}},
-		{struct{ V *[]string }{&[]string{"a", "b"}}, url.Values{"V[]": {"a", "b"}}},
+		{struct{ V *[]string }{&[]string{"a", "b"}}, url.Values{"V[0]": {"a"}, "V[1]": {"b"}}},
 
 		// pointer values for the input struct itself
 		{(*struct{})(nil), url.Values{}},
@@ -234,20 +236,20 @@ func TestValues_Slices(t *testing.T) {
 		},
 		{
 			struct{ V []string }{[]string{""}},
-			url.Values{"V[]": {""}},
+			url.Values{"V[0]": {""}},
 		},
 		{
 			struct{ V []string }{[]string{"a", "b"}},
-			url.Values{"V[]": {"a", "b"}},
+			url.Values{"V[0]": {"a"}, "V[1]": {"b"}},
 		},
 		// arrays of strings
 		{
 			struct{ V [2]string }{},
-			url.Values{"V[]": {"", ""}},
+			url.Values{"V[0]": {""}, "V[1]": {""}},
 		},
 		{
 			struct{ V [2]string }{[2]string{"a", "b"}},
-			url.Values{"V[]": {"a", "b"}},
+			url.Values{"V[0]": {"a"}, "V[1]": {"b"}},
 		},
 	}
 
